@@ -5,7 +5,7 @@ from langserve import add_routes
 from langchain_core.messages import BaseMessage, HumanMessage
 from langserve.pydantic_v1 import BaseModel
 from typing import List, Union, Dict, Any, AsyncIterator
-from langchain_core.runnables import chain, RunnableLambda, RunnablePassthrough,RunnableParallel
+from langchain_core.runnables import chain
 from langchain_core.runnables import RunnableLambda
 
 router = APIRouter()
@@ -39,7 +39,7 @@ class Output(BaseModel):
 
 add_routes(
     router,
-    RunnableLambda(custom_chain).with_types(output_type=Dict),
+    custom_chain.with_types(input_type=Input),
     path="/search"
 )
 
