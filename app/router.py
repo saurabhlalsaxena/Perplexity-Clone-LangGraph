@@ -30,6 +30,7 @@ def custom_chain(input: Input):
     }
 
     output=perplexity_clone_graph.invoke(inputs, config)
+    print(output)
 
     return output
 
