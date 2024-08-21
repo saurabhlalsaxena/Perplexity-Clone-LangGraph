@@ -39,7 +39,7 @@ class Output(BaseModel):
 
 add_routes(
     router,
-    custom_chain.with_types(input_type=Input, output_type=Output),
+    RunnableLambda(custom_chain).with_types(output_type=Dict),
     path="/search"
 )
 
