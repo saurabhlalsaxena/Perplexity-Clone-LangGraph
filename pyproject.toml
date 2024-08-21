@@ -33,7 +33,7 @@ openai = "1.41.1"
 python-multipart = "0.0.9"
 psycopg-binary = "3.2.1"
 psycopg-pool = "3.2.2"
-psycopg2 = "2.9.9"
+psycopg2-binary = "*"
 
 [tool.poetry.group.dev.dependencies]
 langchain-cli = "0.0.29"
