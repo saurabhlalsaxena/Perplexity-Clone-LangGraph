@@ -30,9 +30,9 @@ def custom_chain(input: Input):
     }
 
     output=perplexity_clone_graph.invoke(inputs, config)
-    print(output)
+    answer = output['messages'][-1].content
 
-    return output
+    return answer
 
 class Output(BaseModel):
     output: Any
