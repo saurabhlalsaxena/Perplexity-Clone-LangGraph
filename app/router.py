@@ -7,6 +7,7 @@ from langserve.pydantic_v1 import BaseModel
 from typing import List, Union, Dict, Any, AsyncIterator
 from langchain_core.runnables import chain
 from langchain_core.runnables import RunnableLambda
+from .db_setup import checkpointer
 
 router = APIRouter()
 
@@ -17,6 +18,14 @@ async def read_root():
 class Input(BaseModel):
     query: str
     thread_id: str
+
+@router.get("/getresponse")
+async def get_reponse(thread_id: str = Body(...)):
+    config = {"configurable": {"thread_id": thread_id}}
+    checkpoint =  checkpointer.get(config)
+    answer = checkpoint['channel_values']['messages'][1].content
+    return {'answer':answer}
+
 
 @chain
 def custom_chain(input: Input):
