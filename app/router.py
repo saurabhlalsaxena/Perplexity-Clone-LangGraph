@@ -25,7 +25,7 @@ async def get_reponse(thread_id: Any = Body(...)):
     config = {"configurable": {"thread_id": f'{thread_id}'}}
     checkpoint =  checkpointer.get(config)
     answer = checkpoint['channel_values']['messages'][1].content
-    return {'answer':answer}
+    return {'answer':checkpoint}
 
 
 @chain

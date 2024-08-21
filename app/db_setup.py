@@ -9,7 +9,7 @@ from langgraph.checkpoint.postgres import PostgresSaver
 # Load environment variables
 load_dotenv()
 
-DB_URI = "postgresql://langgraphdb_maol_user:sZv2x8JHy1xOgb0YqYSqUEORbLFJVBAO@dpg-cqrp6bggph6c73a3bai0-a.singapore-postgres.render.com/langgraphdb_maol"
+DB_URI = os.getenv('DATABASE_URL')
 
 connection_kwargs ={
     "autocommit": True,
