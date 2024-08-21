@@ -20,7 +20,7 @@ class Input(BaseModel):
     thread_id: str
 
 @router.get("/getresponse")
-async def get_reponse(thread_id: str = Body(...)):
+async def get_reponse(thread_id: Any = Body(...)):
     config = {"configurable": {"thread_id": thread_id}}
     checkpoint =  checkpointer.get(config)
     answer = checkpoint['channel_values']['messages'][1].content
