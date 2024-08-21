@@ -34,6 +34,7 @@ python-multipart = "0.0.9"
 psycopg-binary = "3.2.1"
 psycopg-pool = "3.2.2"
 psycopg2-binary = "*"
+python-dotenv = "1.0.1"
 
 [tool.poetry.group.dev.dependencies]
 langchain-cli = "0.0.29"
