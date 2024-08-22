@@ -112,7 +112,10 @@ async def websocket_custom_chain(websocket: WebSocket):
                 answer = output['messages'][-1].content
                 
                 response = Output(answer=answer)
-                await manager.send_personal_message(json.dumps(response.dict()), websocket)
+                response_json = json.dumps(response.dict())
+                print(f"Sending response: {response_json}")
+                #await manager.send_personal_message(json.dumps(response.dict()), websocket)
+                await websocket.send_text(response_json)
             except Exception as e:
                 print(f"Error processing query: {str(e)}")
                 await manager.send_personal_message(json.dumps({"error": "An error occurred while processing your request"}), websocket)
