@@ -108,7 +108,7 @@ async def websocket_custom_chain(websocket: WebSocket):
             }
             
             try:
-                output = perplexity_clone_graph.invoke(inputs, config)
+                output = await perplexity_clone_graph.astream(inputs, config)
                 answer = output['messages'][-1].content
                 
                 response = Output(answer=answer)
