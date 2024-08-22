@@ -19,9 +19,15 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
+        #logging.info(f"WebSocket connected. Total connections: {len(self.active_connections)}")
 
     def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+            #logging.info(f"WebSocket disconnected. Total connections: {len(self.active_connections)}")
+        else:
+            print("Attempted to disconnect a WebSocket that was not in the active connections list")
+            #logging.warning("Attempted to disconnect a WebSocket that was not in the active connections list")
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
@@ -83,6 +89,7 @@ async def websocket_custom_chain(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
+            print(f"Received data: {data}")
             parsed_data = json.loads(data)
             
             try:
@@ -100,15 +107,18 @@ async def websocket_custom_chain(websocket: WebSocket):
                 "messages": [HumanMessage(content=input_data.query)],
             }
             
-            output = perplexity_clone_graph.invoke(inputs, config)
-            answer = output['messages'][-1].content
-            
-            response = Output(answer=answer)
-            await manager.send_personal_message(json.dumps(response.dict()), websocket)
+            try:
+                output = perplexity_clone_graph.invoke(inputs, config)
+                answer = output['messages'][-1].content
+                
+                response = Output(answer=answer)
+                await manager.send_personal_message(json.dumps(response.dict()), websocket)
+            except Exception as e:
+                print(f"Error processing query: {str(e)}")
+                await manager.send_personal_message(json.dumps({"error": "An error occurred while processing your request"}), websocket)
             
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
-        await manager.broadcast(f"Client #{id(websocket)} left the chat")
+        print("WebSocket disconnected")
     except Exception as e:
         print(f"An error occurred: {str(e)}")
     finally:
