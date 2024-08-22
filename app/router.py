@@ -10,6 +10,7 @@ from langchain_core.runnables import RunnableLambda
 from .db_setup import checkpointer
 import json
 import asyncio
+import traceback
 
 router = APIRouter()
 
@@ -20,15 +21,14 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
-        #logging.info(f"WebSocket connected. Total connections: {len(self.active_connections)}")
+        print(f"WebSocket connected. Total connections: {len(self.active_connections)}")
 
-    def disconnect(self, websocket: WebSocket):
+    async def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-            #logging.info(f"WebSocket disconnected. Total connections: {len(self.active_connections)}")
+            print(f"WebSocket disconnected. Total connections: {len(self.active_connections)}")
         else:
             print("Attempted to disconnect a WebSocket that was not in the active connections list")
-            #logging.warning("Attempted to disconnect a WebSocket that was not in the active connections list")
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
@@ -89,47 +89,58 @@ async def websocket_custom_chain(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            data = await websocket.receive_text()
-            print(f"Received data: {data}")
-            parsed_data = json.loads(data)
-            
             try:
-                input_data = Input(**parsed_data)
-            except ValueError as e:
-                await manager.send_personal_message(json.dumps({"error": f"Invalid input: {str(e)}"}), websocket)
-                continue
-            
-            config = {
-                "configurable": {"thread_id": input_data.thread_id},
-                "recursion_limit": 20
-            }
-            
-            inputs = {
-                "messages": [HumanMessage(content=input_data.query)],
-            }
-            
-            try:
-                #output = perplexity_clone_graph.invoke(inputs, config)
-                # Use asyncio.wait_for to set a timeout for the long-running operation
-                output = await asyncio.wait_for(
-                    asyncio.to_thread(perplexity_clone_graph.invoke, inputs, config),
-                    timeout=150.0  # Set timeout to 70 seconds
-                )
-                answer = output['messages'][-1].content
-                print(answer)
+                data = await asyncio.wait_for(websocket.receive_text(), timeout=5.0)
+                print(f"Received data: {data}")
+                parsed_data = json.loads(data)
                 
-                response = Output(answer=answer)
-                response_json = json.dumps(response.dict())
-                print(f"Sending response: {response_json}")
-                #await manager.send_personal_message(json.dumps(response.dict()), websocket)
-                await websocket.send_text(response_json)
-            except Exception as e:
-                print(f"Error processing query: {str(e)}")
-                await manager.send_personal_message(json.dumps({"error": "An error occurred while processing your request"}), websocket)
+                input_data = Input(**parsed_data)
+                
+                config = {
+                    "configurable": {"thread_id": input_data.thread_id},
+                    "recursion_limit": 20
+                }
+                
+                inputs = {
+                    "messages": [HumanMessage(content=input_data.query)],
+                }
+                
+                try:
+                    print("Starting perplexity_clone_graph.invoke")
+                    output = await asyncio.to_thread(perplexity_clone_graph.invoke, inputs, config)
+                    print(f"perplexity_clone_graph.invoke completed. Output: {output}")
+                    
+                    if output is None or 'messages' not in output or len(output['messages']) == 0:
+                        raise ValueError("Invalid output from perplexity_clone_graph.invoke")
+                    
+                    answer = output['messages'][-1].content
+                    print(f"Answer: {answer}")
+                    
+                    response_json = json.dumps({"answer": answer})
+                    print(f"Sending response: {response_json}")
+                    await websocket.send_text(response_json)
+                    print("Response sent successfully")
+                
+                except asyncio.TimeoutError:
+                    print("Operation timed out")
+                    await websocket.send_text(json.dumps({"error": "The operation timed out"}))
+                
+                except Exception as e:
+                    print(f"Error processing query: {str(e)}")
+                    print(traceback.format_exc())
+                    await websocket.send_text(json.dumps({"error": f"An error occurred: {str(e)}"}))
             
-    except WebSocketDisconnect:
-        print("WebSocket disconnected")
+            except asyncio.TimeoutError:
+                print("WebSocket receive timed out")
+                await websocket.send_text(json.dumps({"error": "WebSocket receive timed out"}))
+            
+            except WebSocketDisconnect:
+                print("WebSocket disconnected")
+                break
+    
     except Exception as e:
         print(f"An error occurred: {str(e)}")
+        print(traceback.format_exc())
     finally:
-        manager.disconnect(websocket)
+        print("Closing WebSocket connection")
+        await manager.disconnect(websocket)
