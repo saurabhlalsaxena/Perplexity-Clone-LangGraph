@@ -1,6 +1,6 @@
 #router.py
 from packages.search_utils import perplexity_clone_graph
-from fastapi import APIRouter, UploadFile, File, Body, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, Body, BackgroundTasks, WebSocket, WebSocketDisconnect
 from langserve import add_routes
 from langchain_core.messages import BaseMessage, HumanMessage
 from langserve.pydantic_v1 import BaseModel
@@ -8,8 +8,31 @@ from typing import List, Union, Dict, Any, AsyncIterator
 from langchain_core.runnables import chain
 from langchain_core.runnables import RunnableLambda
 from .db_setup import checkpointer
+import json
 
 router = APIRouter()
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        await websocket.send_text(message)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            await connection.send_text(message)
+
+manager = ConnectionManager()
+
+
 
 @router.get("/")
 async def read_root():
@@ -54,3 +77,39 @@ add_routes(
 )
 
 
+@router.websocket("/ws/search")
+async def websocket_custom_chain(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            parsed_data = json.loads(data)
+            
+            try:
+                input_data = Input(**parsed_data)
+            except ValueError as e:
+                await manager.send_personal_message(json.dumps({"error": f"Invalid input: {str(e)}"}), websocket)
+                continue
+            
+            config = {
+                "configurable": {"thread_id": input_data.thread_id},
+                "recursion_limit": 20
+            }
+            
+            inputs = {
+                "messages": [HumanMessage(content=input_data.query)],
+            }
+            
+            output = perplexity_clone_graph.invoke(inputs, config)
+            answer = output['messages'][-1].content
+            
+            response = Output(answer=answer)
+            await manager.send_personal_message(json.dumps(response.dict()), websocket)
+            
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+        await manager.broadcast(f"Client #{id(websocket)} left the chat")
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+    finally:
+        manager.disconnect(websocket)
