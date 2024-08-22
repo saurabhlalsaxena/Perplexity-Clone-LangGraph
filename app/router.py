@@ -9,6 +9,7 @@ from langchain_core.runnables import chain
 from langchain_core.runnables import RunnableLambda
 from .db_setup import checkpointer
 import json
+import asyncio
 
 router = APIRouter()
 
@@ -108,7 +109,12 @@ async def websocket_custom_chain(websocket: WebSocket):
             }
             
             try:
-                output = perplexity_clone_graph.invoke(inputs, config)
+                #output = perplexity_clone_graph.invoke(inputs, config)
+                # Use asyncio.wait_for to set a timeout for the long-running operation
+                output = await asyncio.wait_for(
+                    asyncio.to_thread(perplexity_clone_graph.invoke, inputs, config),
+                    timeout=70.0  # Set timeout to 70 seconds
+                )
                 answer = output['messages'][-1].content
                 print(answer)
                 
