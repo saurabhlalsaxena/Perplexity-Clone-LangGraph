@@ -57,6 +57,13 @@ async def get_reponse(thread_id: Any = Body(...)):
     answer = checkpoint['channel_values']['messages'][1].content
     return {'answer':checkpoint}
 
+@router.post("/getcheckpoint")
+async def get_checkpoint(thread_id: Any = Body(...)):
+    thread_id = thread_id['thread_id']
+    config = {"configurable": {"thread_id": f'{thread_id}'}}
+    checkpoint =  checkpointer.get(config)
+    return {'checkpoint':checkpoint}
+
 
 @chain
 def custom_chain(input: Input):
