@@ -64,6 +64,12 @@ async def get_checkpoint(thread_id: Any = Body(...)):
     checkpoint =  checkpointer.get(config)
     return {'checkpoint':checkpoint}
 
+@router.post("/listcheckpoints")
+async def list_checkpoints(thread_id: Any = Body(...)):
+    thread_id = thread_id['thread_id']
+    config = {"configurable": {"thread_id": f'{thread_id}'}}
+    checkpoint_list =  checkpointer.list(config)
+    return {'checkpoint_list':checkpoint_list}
 
 @chain
 def custom_chain(input: Input):
