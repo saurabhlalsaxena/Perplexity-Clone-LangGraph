@@ -25,7 +25,8 @@ from langchain_community.document_transformers import Html2TextTransformer
 from .search_prompts import SEARCH_QUERY_PROMPT, FINAL_NODE_SYSTEM_PROMPT, FINAL_NODE_PROMPT
 from .duckduckgo_utils import search
 
-model = ChatMistralAI(api_key=os.environ.get('MISTRAL_API_KEY'),model="mistral-large-latest",temperature=0)
+#model = ChatMistralAI(api_key=os.environ.get('MISTRAL_API_KEY'),model="mistral-large-latest",temperature=0)
+model = ChatMistralAI(api_key=os.environ.get('MISTRAL_API_KEY'),model="open-mistral-nemo-2407",temperature=0)
 #model = ChatAnthropic(temperature=0, model_name="claude-3-haiku-20240307", max_tokens=4096)
 final_model = ChatAnthropic(temperature=0, model_name="claude-3-5-sonnet-20240620", max_tokens=4096)
 #model = ChatOpenAI(model="gpt-4o-mini",temperature=0, streaming=True)
