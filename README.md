@@ -35,7 +35,6 @@ LangSmith will help us trace, monitor and debug LangChain applications.
 You can sign up for LangSmith [here](https://smith.langchain.com/). 
 If you don't have access, you can skip this section
 
-
 ```shell
 export LANGCHAIN_TRACING_V2=true
 export LANGCHAIN_API_KEY=<your-api-key>
@@ -77,3 +76,67 @@ We also expose port 8080 with the `-p 8080:8080` option.
 ```shell
 docker run -e OPENAI_API_KEY=$OPENAI_API_KEY -p 8080:8080 my-langserve-app
 ```
+
+## Project Structure
+
+The project is structured as follows:
+
+- `app/`: Contains the main application code.
+  - `server.py`: The main server file that sets up the FastAPI application.
+  - `router.py`: Contains the API routes and WebSocket handling.
+  - `db_setup.py`: Sets up the database connection and checkpointer.
+- `packages/`: Contains utility functions and modules.
+  - `search_utils/`: Contains search-related utilities.
+    - `duckduckgo_utils.py`: Utilities for DuckDuckGo search.
+    - `search_prompts.py`: Contains prompt templates for search queries.
+    - `search_graph.py`: Defines the state graph for the search process.
+    - `search_agent_nodes.py`: Contains the nodes for the search agent.
+- `Dockerfile`: Dockerfile to build the application image.
+- `pyproject.toml`: Project dependencies and configuration.
+- `.gitignore`: Specifies files and directories to be ignored by git.
+
+## Usage
+
+### Running the Application
+
+To run the application locally, use the following command:
+
+```shell
+
+uvicorn app.server:app --host 0.0.0.0 --port 8000
+```
+
+### API Endpoints
+
+- `GET /`: Redirects to the API documentation.
+- `POST /getresponse`: Retrieves the response for a given thread ID.
+- `POST /getcheckpoint`: Retrieves the checkpoint for a given thread ID.
+- `POST /listcheckpoints`: Lists all checkpoints for a given thread ID.
+- `POST /search`: Custom search endpoint using the defined state graph.
+- `WS /ws/search`: WebSocket endpoint for real-time search queries.
+
+### Environment Variables
+
+Ensure you have the following environment variables set:
+
+- `DATABASE_URL`: The URL for the PostgreSQL database.
+- `OPENAI_API_KEY`: API key for OpenAI.
+- `MISTRAL_API_KEY`: API key for Mistral AI.
+
+### Example Usage
+
+To perform a search query, you can use the `/search` endpoint:
+
+```bash
+curl -X POST "http://localhost:8000/search" -H "Content-Type: application/json" -d '{"query": "What is the capital of France?", "thread_id": "12345"}'
+```
+
+This will return the search results processed by the state graph.
+
+## Contributing
+
+Feel free to open issues or submit pull requests for any improvements or bug fixes.
+
+## License
+
+This project is licensed under the MIT License.
