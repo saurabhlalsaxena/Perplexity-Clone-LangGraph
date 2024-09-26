@@ -68,11 +68,12 @@ async def custom_chain_logic(input: Input, request: Request):
     return {'answer': answer}
 
 custom_chain = RunnableParallel(
-    {"input": RunnableLambda(lambda x: x)},
-    {"request": RunnableLambda(get_request)}
-).assign(
-    output=RunnableLambda(custom_chain_logic)
-).pick("output")
+    {
+        "input": RunnableLambda(lambda x: x),
+        "request": RunnableLambda(get_request)
+    }
+).assign(output=RunnableLambda(custom_chain_logic))
+
 
 add_routes(
     router,
