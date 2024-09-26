@@ -1,6 +1,6 @@
 #router.py
 #from packages.search_utils import perplexity_clone_graph
-from fastapi import APIRouter, UploadFile, File, Body, BackgroundTasks, WebSocket, WebSocketDisconnect, Request
+from fastapi import APIRouter, UploadFile, File, Body, BackgroundTasks, WebSocket, WebSocketDisconnect, Request, Depends
 from langserve import add_routes
 from langchain_core.messages import BaseMessage, HumanMessage
 from langserve.pydantic_v1 import BaseModel
@@ -51,7 +51,7 @@ class Input(BaseModel):
     thread_id: str
 
 @chain
-async def custom_chain(input: Input, request: Request):
+async def custom_chain(input: Input, request: Request = Depends()):
     query = input['query']
     thread_id = input['thread_id']
 
