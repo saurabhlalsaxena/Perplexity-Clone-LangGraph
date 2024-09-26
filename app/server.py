@@ -23,7 +23,8 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 from psycopg_pool import AsyncConnectionPool
-from langgraph.checkpoint.postgres import AsyncPostgresSaver
+#from langgraph.checkpoint.postgres import AsyncPostgresSaver
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from .db_setup import DB_URI, connection_kwargs
 
 
