@@ -39,7 +39,8 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-
+def get_request(request: Request):
+    return request
 
 @router.get("/")
 async def read_root():
@@ -51,7 +52,7 @@ class Input(BaseModel):
     thread_id: str
 
 @chain
-async def custom_chain(input: Input, request: Request = Depends()):
+async def custom_chain(input: Input, request: Request = Depends(get_request)):
     query = input['query']
     thread_id = input['thread_id']
 
