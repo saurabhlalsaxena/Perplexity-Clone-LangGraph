@@ -63,7 +63,7 @@ async def custom_chain(input: Input, request: Request = Depends(get_request)):
     }
 
     #output=perplexity_clone_graph.invoke(inputs, config)
-    output = await request.app.state.graph.ainvoke(inputs, config)
+    output = await request.state.graph.ainvoke(inputs, config)
     answer = output['messages'][-1].content
 
     return {'answer':answer}

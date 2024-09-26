@@ -37,8 +37,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[dict[str, Any]]:
     ) as pool, pool.connection() as conn:
         checkpointer = AsyncPostgresSaver(conn)
         graph = create_graph(checkpointer)
-        app.state.graph = graph
-        yield
+        yield {"graph": graph}
 
 app = FastAPI(
     title="Perplexity Clone",
