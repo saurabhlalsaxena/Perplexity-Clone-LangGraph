@@ -3,7 +3,8 @@ from packages.search_utils import create_graph #perplexity_clone_graph
 from fastapi import APIRouter, UploadFile, File, Body, BackgroundTasks, WebSocket, WebSocketDisconnect, Request, Depends
 from langserve import add_routes
 from langchain_core.messages import BaseMessage, HumanMessage
-from langserve.pydantic_v1 import BaseModel
+#from langserve.pydantic_v1 import BaseModel
+from pydantic import BaseModel
 from typing import List, Union, Dict, Any, AsyncIterator
 from langchain_core.runnables import chain
 from langchain_core.runnables import RunnableLambda

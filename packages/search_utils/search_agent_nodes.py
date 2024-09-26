@@ -14,7 +14,8 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains import create_structured_output_runnable
 from langchain.agents.agent_types import AgentType
 from typing import TypedDict, Annotated, Sequence, List
-from langchain_core.pydantic_v1 import BaseModel, Field
+#from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 import operator
 from langchain_mistralai.chat_models import ChatMistralAI
 from langchain_anthropic import ChatAnthropic
