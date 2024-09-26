@@ -7,6 +7,7 @@ from langserve.pydantic_v1 import BaseModel
 from typing import List, Union, Dict, Any, AsyncIterator
 from langchain_core.runnables import chain
 from langchain_core.runnables import RunnableLambda
+from langchain_core.runnables import RunnableParallel, RunnableLambda
 #from .db_setup import checkpointer
 import json
 import asyncio
@@ -51,31 +52,61 @@ class Input(BaseModel):
     query: str
     thread_id: str
 
-@chain
-async def custom_chain(input: Input, request: Request = Depends(get_request)):
-    query = input['query']
-    thread_id = input['thread_id']
+async def custom_chain_logic(input: Input, request: Request):
+    query = input.query
+    thread_id = input.thread_id
 
-    config = {"configurable": {"thread_id": f'{thread_id}'},"recursion_limit": 20}
+    config = {"configurable": {"thread_id": f'{thread_id}'}, "recursion_limit": 20}
 
     inputs = {
-    "messages": [HumanMessage(content=query)],
+        "messages": [HumanMessage(content=query)],
     }
 
-    #output=perplexity_clone_graph.invoke(inputs, config)
-    output = await request.state.graph.ainvoke(inputs, config)
+    output = await request.app.state.graph.ainvoke(inputs, config)
     answer = output['messages'][-1].content
 
-    return {'answer':answer}
+    return {'answer': answer}
 
-class Output(BaseModel):
-    output: Any
+custom_chain = RunnableParallel(
+    {"input": RunnableLambda(lambda x: x)},
+    {"request": RunnableLambda(get_request)}
+).assign(
+    output=RunnableLambda(custom_chain_logic)
+).pick("output")
 
 add_routes(
     router,
-    custom_chain.with_types(input_type=Input).with_config(include_request=True),
+    custom_chain.with_types(input_type=Input),
     path="/search"
 )
+
+
+
+# @chain
+# async def custom_chain(input: Input, request: Request = Depends(get_request)):
+#     query = input['query']
+#     thread_id = input['thread_id']
+
+#     config = {"configurable": {"thread_id": f'{thread_id}'},"recursion_limit": 20}
+
+#     inputs = {
+#     "messages": [HumanMessage(content=query)],
+#     }
+
+#     #output=perplexity_clone_graph.invoke(inputs, config)
+#     output = await request.state.graph.ainvoke(inputs, config)
+#     answer = output['messages'][-1].content
+
+#     return {'answer':answer}
+
+# class Output(BaseModel):
+#     output: Any
+
+# add_routes(
+#     router,
+#     custom_chain.with_types(input_type=Input).with_config(include_request=True),
+#     path="/search"
+# )
 
 # @router.post("/getresponse")
 # async def get_reponse(thread_id: Any = Body(...)):
