@@ -71,7 +71,7 @@ class Output(BaseModel):
 
 add_routes(
     router,
-    custom_chain.with_types(input_type=Input),
+    custom_chain.with_types(input_type=Input).with_config(include_request=True),
     path="/search"
 )
 
