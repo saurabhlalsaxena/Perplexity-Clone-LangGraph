@@ -45,6 +45,7 @@ manager = ConnectionManager()
 async def read_root():
     return {"message": "OK"}
 
+
 class Input(BaseModel):
     query: str
     thread_id: str
@@ -61,7 +62,7 @@ async def custom_chain(input: Input, request: Request):
     }
 
     #output=perplexity_clone_graph.invoke(inputs, config)
-    output = await request.app.state.graph.invoke(inputs, config)
+    output = await request.app.state.graph.ainvoke(inputs, config)
     answer = output['messages'][-1].content
 
     return {'answer':answer}
