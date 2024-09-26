@@ -74,7 +74,7 @@ async def custom_chain(input: Input):
         # NOTE: you need to call .setup() the first time you're using your checkpointer
         #await checkpointer.setup()
 
-        graph = create_graph(checkpoint=checkpointer)
+        graph = create_graph(checkpointer=checkpointer)
         output = await graph.ainvoke(
             inputs, config
         )
