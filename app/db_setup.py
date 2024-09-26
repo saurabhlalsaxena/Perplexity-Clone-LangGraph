@@ -1,4 +1,4 @@
-# app/db_setup.py
+# app/db_setup_sync.py
 import os
 from dotenv import load_dotenv
 from psycopg import Connection
@@ -16,3 +16,13 @@ connection_kwargs ={
     "prepare_threshold": 0,
     "row_factory": dict_row,
 }
+
+pool = ConnectionPool(
+    conninfo=DB_URI,
+    max_size=20,
+    kwargs=connection_kwargs
+)
+
+conn = pool.getconn()
+
+checkpointer = PostgresSaver(conn)
