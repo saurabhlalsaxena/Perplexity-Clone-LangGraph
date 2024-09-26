@@ -9,14 +9,40 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from langserve import add_routes
 from .router import router
+#from psycopg.rows import dict_row
+#from psycopg_pool import ConnectionPool
+#from langgraph.checkpoint.postgres import PostgresSaver
+
+from packages.search_utils import create_graph
+
+
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 from langgraph.checkpoint.postgres import PostgresSaver
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from typing import Any
+from psycopg_pool import AsyncConnectionPool
+from langgraph.checkpoint.postgres import AsyncPostgresSaver
+from .db_setup import DB_URI, connection_kwargs
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[dict[str, Any]]:
+    async with AsyncConnectionPool(
+        conninfo=DB_URI,
+        max_size=20,
+        kwargs=connection_kwargs
+    ) as pool, pool.connection() as conn:
+        checkpointer = AsyncPostgresSaver(conn)
+        graph = create_graph(checkpointer)
+        yield {"graph": graph}
 
 app = FastAPI(
     title="Perplexity Clone",
     description="First version of perplexity clone",
-    version="0.0.1"
+    version="0.0.1",
+    lifespan=lifespan
 )
 
 # Add CORS middleware
