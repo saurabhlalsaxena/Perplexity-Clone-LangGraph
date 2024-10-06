@@ -1,5 +1,5 @@
 # Perplexity-Clone-LangGraph
-
+Author LinkedIn: www.linkedin.com/in/saurabh-lal-saxena-57a1704b
 ## Installation
 
 Install the LangChain CLI if you haven't yet
